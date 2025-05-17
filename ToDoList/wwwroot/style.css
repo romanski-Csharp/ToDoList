@@ -1,0 +1,91 @@
+﻿body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    padding: 30px;
+    max-width: 600px;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+    color: #0079f4;
+    margin-bottom: 30px;
+}
+
+form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #0079f4;
+    border-radius: 6px;
+    font-size: 16px;
+    outline: none;
+}
+
+button {
+    background-color: #0079f4;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease;
+}
+
+    button:hover {
+        background-color: #005fc0;
+    }
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    background-color: white;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    word-break: break-word;
+}
+
+    li span {
+        flex: 1;
+        text-align: left;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+    }
+
+        li span + span {
+            margin-left: auto;
+            text-align: right;
+        }
+
+    li button {
+        background-color: transparent;
+        color: red;
+        font-size: 18px;
+        border: none;
+        cursor: pointer;
+    }
+
+    li input[type="checkbox"] {
+        transform: scale(1.3);
+        margin-right: 8px;
+        margin-top: 2px;
+    }
+

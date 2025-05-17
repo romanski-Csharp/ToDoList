@@ -1,0 +1,139 @@
+﻿<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>ToDo List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Мій ToDo List</h1>
+
+    <form id="todoForm">
+        <input type="text" id="titleInput" placeholder="Нова задача" required>
+        <input type="datetime-local" id="deadlineInput" required>
+        <button type="submit">Додати</button>
+    </form>
+
+
+    <ul id="todoList"></ul>
+
+    <script>
+        const apiUrl = "https://localhost:7028/api/todo";
+
+        async function loadItems() {
+            const response = await fetch(apiUrl);
+            const items = await response.json();
+            const list = document.getElementById("todoList");
+            list.innerHTML = "";
+
+            items.forEach(item => {
+                const li = document.createElement("li");
+
+                // Чекбокс
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.checked = item.isCompleted;
+                checkbox.onchange = async () => {
+                    await fetch(`${apiUrl}/${item.id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            id: item.id,
+                            title: item.title,
+                            isCompleted: checkbox.checked,
+                            deadline: item.deadline
+                        })
+                    });
+                    await loadItems();
+                };
+
+                // Контейнер для тексту та дати
+                const contentWrapper = document.createElement("div");
+                contentWrapper.style.flex = "1";
+
+                const titleSpan = document.createElement("div");
+                titleSpan.textContent = item.title;
+                titleSpan.style.whiteSpace = "pre-wrap";
+                titleSpan.style.wordWrap = "break-word";
+                if (item.isCompleted) {
+                    titleSpan.style.textDecoration = "line-through";
+                    titleSpan.style.color = "#888";
+                }
+
+                const deadlineSpan = document.createElement("div");
+                const deadlineDate = new Date(item.deadline);
+                const now = new Date();
+                let timeLeftText = "";
+
+                if (deadlineDate < now) {
+                    timeLeftText = "⚠️ Прострочено!";
+                    deadlineSpan.style.color = "red";
+                } else {
+                    const diffMs = deadlineDate - now;
+                    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                    const diffMin = Math.ceil((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    timeLeftText = `Залишилось: ${diffHrs} год ${diffMin} хв`;
+                }
+
+                deadlineSpan.textContent = timeLeftText;
+
+
+                deadlineSpan.textContent = timeLeftText;
+
+
+                deadlineSpan.textContent = timeLeftText;
+                deadlineSpan.style.fontSize = "12px";
+                deadlineSpan.style.color = "#666";
+                deadlineSpan.style.marginTop = "4px";
+
+                contentWrapper.appendChild(titleSpan);
+                contentWrapper.appendChild(deadlineSpan);
+
+                // Кнопка видалення
+                const deleteBtn = document.createElement("button");
+                deleteBtn.textContent = "🗑";
+                deleteBtn.onclick = async () => {
+                    await fetch(`${apiUrl}/${item.id}`, {
+                        method: "DELETE"
+                    });
+                    await loadItems();
+                };
+
+                li.appendChild(checkbox);
+                li.appendChild(contentWrapper);
+                li.appendChild(deleteBtn);
+
+                list.appendChild(li);
+            });
+        }
+
+        document.getElementById("todoForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const title = document.getElementById("titleInput").value.trim();
+            const rawDeadline = document.getElementById("deadlineInput").value;
+            const deadline = new Date(rawDeadline).toISOString();
+
+
+
+            if (!title) return;
+
+            await fetch(apiUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: title,
+                    isCompleted: false,
+                    deadline: deadline
+                })
+
+            });
+
+            document.getElementById("titleInput").value = "";
+            await loadItems();
+        });
+
+        // Завантаження при відкритті
+        loadItems();
+    </script>
+</body>
+</html>
