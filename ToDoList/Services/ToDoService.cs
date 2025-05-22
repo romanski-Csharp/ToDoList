@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using ToDoList.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace ToDoList.Services
 {
@@ -17,8 +18,12 @@ namespace ToDoList.Services
         public async Task<List<ToDoItem>> GetAsync() =>
             await _items.Find(_ => true).ToListAsync();
 
-        public async Task<ToDoItem> GetAsync(string id) =>
+        public async Task<ToDoItem?> GetAsync(string id) =>
             await _items.Find(i => i.Id == id).FirstOrDefaultAsync();
+        public async Task<List<ToDoItem>> GetByUserAsync(string userId)
+        {
+            return await _items.Find(i => i.UserId == userId).ToListAsync();
+        }
 
         public async Task CreateAsync(ToDoItem item) =>
             await _items.InsertOneAsync(item);

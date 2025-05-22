@@ -6,7 +6,7 @@ namespace ToDoList.Models
     public class ToDoItem
     {
         [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)] // ✅ дозволяє зберігати як string, але MongoDB обробляє як ObjectId
+        [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
 
         [BsonElement("title")]
@@ -17,6 +17,9 @@ namespace ToDoList.Models
 
         [BsonElement("deadline")]
         public DateTime Deadline { get; set; }
+
+        [BsonElement("userId")]
+        public string UserId { get; set; } = "";
 
     }
 }

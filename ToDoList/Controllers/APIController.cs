@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ToDoList.Models;
 using ToDoList.Services;
 
 namespace ToDoList.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ToDoController : ControllerBase
@@ -16,15 +18,23 @@ namespace ToDoList.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<ToDoItem>>> Get() =>
-            await _service.GetAsync();
+        public async Task<ActionResult<List<ToDoItem>>> Get()
+        {
+            var username = User.Identity?.Name;
+            var items = await _service.GetByUserAsync(username!);
+            return items;
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> Create(ToDoItem item)
         {
+            var username = User.Identity?.Name; // ?? отримуємо ім'я з токена
+            item.UserId = username!;
             await _service.CreateAsync(item);
             return CreatedAtAction(nameof(Get), new { id = item.Id }, item);
         }
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, ToDoItem item)

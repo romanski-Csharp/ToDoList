@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
@@ -8,20 +9,105 @@
 <body>
     <h1>Мій ToDo List</h1>
 
-    <form id="todoForm">
+    <div id="authBlock">
+        <h2>Авторизація</h2>
+        <input type="text" id="username" placeholder="Ім’я користувача" />
+        <input type="password" id="password" placeholder="Пароль" />
+        <button onclick="register()">Зареєструватися</button>
+        <button onclick="login()">Увійти</button>
+    </div>
+
+    <div id="userInfo" style="display: none; position: absolute; top: 10px; right: 20px; text-align: right;">
+        <p>Вітаємо, <span id="loggedUser"></span>!</p>
+        <button onclick="logout()">Вийти</button>
+    </div>
+
+    <form id="todoForm" style="display: none;">
         <input type="text" id="titleInput" placeholder="Нова задача" required>
         <input type="datetime-local" id="deadlineInput" required>
         <button type="submit">Додати</button>
     </form>
 
-
-    <ul id="todoList"></ul>
+    <ul id="todoList" style="display: none;"></ul>
 
     <script>
-        const apiUrl = "https://localhost:7028/api/todo";
+        let token = "";
+        let currentUser = "";
+
+        async function register() {
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+
+            if (username.length < 3) {
+                alert("Ім’я користувача має бути не менше 3 символів");
+                return;
+            }
+            if (password.length < 5) {
+                alert("Пароль має бути не менше 5 символів");
+                return;
+            }
+
+            const res = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+
+            const msg = await res.text();
+            alert(msg);
+        }
+
+        async function login() {
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+
+            const res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (!res.ok) {
+                alert("❌ Невірні дані входу!");
+                return;
+            }
+
+            const data = await res.json();
+            token = data.token;
+            currentUser = username;
+
+            document.getElementById("authBlock").style.display = "none";
+            document.getElementById("todoForm").style.display = "block";
+            document.getElementById("todoList").style.display = "block";
+            document.getElementById("userInfo").style.display = "block";
+            document.getElementById("loggedUser").innerText = username;
+
+            await loadItems();
+        }
+
+        function logout() {
+            token = "";
+            currentUser = "";
+            document.getElementById("authBlock").style.display = "block";
+            document.getElementById("todoForm").style.display = "none";
+            document.getElementById("todoList").style.display = "none";
+            document.getElementById("userInfo").style.display = "none";
+            document.getElementById("todoList").innerHTML = "";
+        }
+
+        const apiUrl = `${window.location.origin}/api/todo`;
 
         async function loadItems() {
-            const response = await fetch(apiUrl);
+            if (!token) return;
+
+            const response = await fetch(apiUrl, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) return;
+
             const items = await response.json();
             const list = document.getElementById("todoList");
             list.innerHTML = "";
@@ -29,14 +115,16 @@
             items.forEach(item => {
                 const li = document.createElement("li");
 
-                // Чекбокс
                 const checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
                 checkbox.checked = item.isCompleted;
                 checkbox.onchange = async () => {
                     await fetch(`${apiUrl}/${item.id}`, {
                         method: "PUT",
-                        headers: { "Content-Type": "application/json" },
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`
+                        },
                         body: JSON.stringify({
                             id: item.id,
                             title: item.title,
@@ -47,7 +135,6 @@
                     await loadItems();
                 };
 
-                // Контейнер для тексту та дати
                 const contentWrapper = document.createElement("div");
                 contentWrapper.style.flex = "1";
 
@@ -76,12 +163,6 @@
                 }
 
                 deadlineSpan.textContent = timeLeftText;
-
-
-                deadlineSpan.textContent = timeLeftText;
-
-
-                deadlineSpan.textContent = timeLeftText;
                 deadlineSpan.style.fontSize = "12px";
                 deadlineSpan.style.color = "#666";
                 deadlineSpan.style.marginTop = "4px";
@@ -89,12 +170,14 @@
                 contentWrapper.appendChild(titleSpan);
                 contentWrapper.appendChild(deadlineSpan);
 
-                // Кнопка видалення
                 const deleteBtn = document.createElement("button");
                 deleteBtn.textContent = "🗑";
                 deleteBtn.onclick = async () => {
                     await fetch(`${apiUrl}/${item.id}`, {
-                        method: "DELETE"
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
                     });
                     await loadItems();
                 };
@@ -102,7 +185,6 @@
                 li.appendChild(checkbox);
                 li.appendChild(contentWrapper);
                 li.appendChild(deleteBtn);
-
                 list.appendChild(li);
             });
         }
@@ -113,27 +195,24 @@
             const rawDeadline = document.getElementById("deadlineInput").value;
             const deadline = new Date(rawDeadline).toISOString();
 
-
-
             if (!title) return;
 
             await fetch(apiUrl, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     title: title,
                     isCompleted: false,
                     deadline: deadline
                 })
-
             });
 
             document.getElementById("titleInput").value = "";
             await loadItems();
         });
-
-        // Завантаження при відкритті
-        loadItems();
     </script>
 </body>
 </html>
