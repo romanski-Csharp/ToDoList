@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -12,17 +14,18 @@ namespace ToDoList.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _config;
-
-        // Просто для тесту — список користувачів в пам'яті
-        private static List<UserModel> users = new();
+        private readonly IMongoCollection<UserModel> _users;
 
         public AuthController(IConfiguration config)
         {
             _config = config;
+            var client = new MongoClient(config.GetConnectionString("MongoDb"));
+            var db = client.GetDatabase("ToDoDb");
+            _users = db.GetCollection<UserModel>("Users");
         }
 
         [HttpPost("register")]
-        public IActionResult Register([FromBody] UserModel user)
+        public async Task<IActionResult> Register([FromBody] UserModel user)
         {
             if (string.IsNullOrWhiteSpace(user.Username) || user.Username.Length < 3)
                 return BadRequest("Ім'я користувача має бути щонайменше 3 символи");
@@ -30,22 +33,23 @@ namespace ToDoList.Controllers
             if (string.IsNullOrWhiteSpace(user.Password) || user.Password.Length < 5)
                 return BadRequest("Пароль має бути щонайменше 5 символів");
 
-            if (users.Any(u => u.Username == user.Username))
+            var existing = await _users.Find(u => u.Username == user.Username).FirstOrDefaultAsync();
+            if (existing != null)
                 return BadRequest("Такий користувач вже існує");
 
-            users.Add(user);
+            await _users.InsertOneAsync(user);
             return Ok("Користувача зареєстровано");
         }
 
-
         [HttpPost("login")]
-        public IActionResult Login([FromBody] UserModel user)
+        public async Task<IActionResult> Login([FromBody] UserModel user)
         {
-            var valid = users.FirstOrDefault(u =>
-                u.Username == user.Username && u.Password == user.Password);
+            var valid = await _users.Find(u =>
+                u.Username == user.Username && u.Password == user.Password
+            ).FirstOrDefaultAsync();
 
             if (valid == null)
-                return Unauthorized("Invalid credentials");
+                return Unauthorized("Невірне ім’я або пароль");
 
             var token = GenerateToken(valid.Username);
             return Ok(new { token });

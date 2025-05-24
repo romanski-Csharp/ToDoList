@@ -43,6 +43,7 @@ namespace ToDoList.Controllers
             if (existing is null) return NotFound();
 
             item.Id = existing.Id;
+            item.UserId = existing.UserId;
             await _service.UpdateAsync(id, item);
             return NoContent();
         }

@@ -13,6 +13,47 @@ h1 {
     margin-bottom: 30px;
 }
 
+.centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+    .centered > div {
+        width: 100%;
+        max-width: 300px;
+        margin-bottom: 10px;
+    }
+
+    .centered input,
+    .centered button {
+        width: 100%;
+        box-sizing: border-box;
+    }
+.auth-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#authBlock {
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+}
+
+    #authBlock input,
+    #authBlock button {
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+        font-size: 16px;
+        padding: 10px;
+    }
+
+
 form {
     display: flex;
     gap: 10px;

@@ -8,14 +8,19 @@
 </head>
 <body>
     <h1>Мій ToDo List</h1>
-
-    <div id="authBlock">
-        <h2>Авторизація</h2>
-        <input type="text" id="username" placeholder="Ім’я користувача" />
-        <input type="password" id="password" placeholder="Пароль" />
-        <button onclick="register()">Зареєструватися</button>
-        <button onclick="login()">Увійти</button>
+    <div class="auth-wrapper">
+        <div id="authBlock">
+            <div id="authBlock" class="centered">
+                <h2>Авторизація</h2>
+                <div><input type="text" id="username" placeholder="Ім’я користувача" /></div>
+                <div><input type="password" id="password" placeholder="Пароль" /></div>
+                <div><button onclick="register()">Зареєструватися</button></div>
+                <div><button onclick="login()">Увійти</button></div>
+            </div>
+        </div>
     </div>
+
+    
 
     <div id="userInfo" style="display: none; position: absolute; top: 10px; right: 20px; text-align: right;">
         <p>Вітаємо, <span id="loggedUser"></span>!</p>
@@ -75,6 +80,7 @@
             const data = await res.json();
             token = data.token;
             currentUser = username;
+            localStorage.setItem("jwt", token);
 
             document.getElementById("authBlock").style.display = "none";
             document.getElementById("todoForm").style.display = "block";
@@ -213,6 +219,18 @@
             document.getElementById("titleInput").value = "";
             await loadItems();
         });
+        window.onload = () => {
+            const savedToken = localStorage.getItem("jwt");
+            if (savedToken) {
+                token = savedToken;
+                document.getElementById("authBlock").style.display = "none";
+                document.getElementById("todoForm").style.display = "block";
+                document.getElementById("todoList").style.display = "block";
+                document.getElementById("userInfo").style.display = "block";
+                loadItems();
+            }
+        };
+
     </script>
 </body>
 </html>
