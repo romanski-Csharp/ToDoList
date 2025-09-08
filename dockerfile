@@ -1,19 +1,16 @@
-# Використовуємо офіційний SDK образ для білду
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 
 # Копіюємо csproj і відновлюємо залежності
 COPY *.csproj ./
 RUN dotnet restore
 
-# Копіюємо весь код і публікуємо релізну збірку
+# Копіюємо весь код і збираємо реліз
 COPY . ./
 RUN dotnet publish -c Release -o out
 
-# Використовуємо легкий runtime образ
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+# Runtime образ
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build /app/out .
-
-# Запускаємо твою програму
 ENTRYPOINT ["dotnet", "ToDoList.dll"]
