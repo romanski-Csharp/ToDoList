@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 
-# Копіюємо solution і проект (обидва в корені)
+# Копіюємо solution і проект
 COPY *.sln ./
 COPY *.csproj ./
 
