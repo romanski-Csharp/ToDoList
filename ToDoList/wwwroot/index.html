@@ -116,6 +116,12 @@
                 }
             });
 
+            if (response.status === 401) {
+                alert("Сесія завершена або недійсний токен. Будь ласка, увійдіть знову.");
+                logout(); // очищає інтерфейс і localStorage
+                return;
+            }
+
             if (!response.ok) return;
 
             const items = await response.json();
